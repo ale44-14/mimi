@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>MIMI</title>
+  <meta charset="utf-8">
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: "Archivo Black", sans-serif;
+      text-align: center;
+      background: black;
+    }
+
+    #estrellas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #c {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    button {
+      font-size: 1.5em;
+      padding: 10px 20px;
+      margin-top: 30vh;
+      background-color: crimson;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      position: relative;
+      z-index: 3;
+    }
+
+    #mensaje {
+      display: none;
+      font-size: 2em;
+      margin-top: 30px;
+      opacity: 0;
+      animation: fadeIn 2s ease-in forwards;
+      z-index: 3;
+      position: relative;
+      color: #f9f9d0;
+    }
+
+    #lyrics {
+      position: absolute;
+      bottom: 50px;
+      width: 100%;
+      text-align: center;
+      font-size: 1.8em;
+      color: #ffffff;
+      opacity: 0; /* <<< TRANSPARENCIA MEDIA AQUÍ */
+      z-index: 3;
+      padding: 0 20px;
+      animation: flotar 4s ease-in-out infinite;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    @keyframes flotar {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="estrellas"></canvas>
+  <canvas id="c"></canvas>
+
+  <audio id="musica">
+    <source src="3AM - COMO TÚ (Visualizer).mp3" type="audio/mpeg">
+  </audio>
+
+  <button onclick="mostrarCorazon()">Presiona aquí</button>
+  <p id="mensaje">Nuestro segundo mes para que veas y apenas inicia un 26 (ya tamos viejos)🤧❤️</p>
+  <div id="lyrics"></div>
+
+  <script>
+    function mostrarCorazon() {
+      document.querySelector("button").style.display = "none";
+      document.getElementById("c").style.display = "block";
+      document.getElementById("mensaje").style.display = "block";
+      document.getElementById("musica").play();
+      iniciarCorazon();
+    }
+
+    function iniciarCorazon() {
+      var c = document.getElementById('c');
+      var a = c.getContext('2d');
+      var O = c.width = window.innerWidth;
+      var Q = c.height = window.innerHeight;
+      var e = [], h = [], v = 32, M = Math, R = M.random, C = M.cos, Y = 6.3;
+
+      for (let i = 0; i < Y; i += .2) {
+        h.push([
+          O / 2 + 180 * M.pow(M.sin(i), 3),
+          Q / 2 + 10 * (-(15 * C(i) - 5 * C(2 * i) - 2 * C(3 * i) - C(4 * i)))
+        ]);
+      }
+
+      for (let i = 0; i < v; i++) {
+        let x = R() * O;
+        let y = R() * Q;
+        let H = i / v * 80 + 280;
+        let S = R() * 40 + 60;
+        let f = [];
+
+        for (let k = 0; k < v; k++) {
+          f[k] = {
+            x: x,
+            y: y,
+            X: 0,
+            Y: 0,
+            R: (1 - k / v) + 1,
+            S: R() + 1,
+            q: ~~(R() * v),
+            D: i % 2 * 2 - 1,
+            F: R() * .2 + .7,
+            f: "hsla(" + ~~H + "," + ~~S + "%,70%, 0.7)" // MÁS BRILLO Y OPACIDAD
+          };
+        }
+        e.push(f);
+      }
+
+      function render(p) {
+        a.fillStyle = p.f;
+        a.beginPath();
+        a.arc(p.x, p.y, p.R, 0, Y, 1);
+        a.closePath();
+        a.fill();
+      }
+
+      function loop() {
+        a.clearRect(0, 0, O, Q); // TRANSPARENTE para ver fondo
+
+        for (let i = 0; i < e.length; i++) {
+          let f = e[i], u = f[0], q = h[u.q];
+          let D = u.x - q[0], E = u.y - q[1];
+          let G = M.sqrt(D * D + E * E);
+
+          if (G < 10) {
+            if (R() > .95) {
+              u.q = ~~(R() * v);
+            } else {
+              if (R() > .99) u.D *= -1;
+              u.q += u.D;
+              u.q %= v;
+              if (u.q < 0) u.q += v;
+            }
+          }
+
+          u.X += -D / G * u.S;
+          u.Y += -E / G * u.S;
+
+          u.x += u.X;
+          u.y += u.Y;
+
+          render(u);
+
+          u.X *= u.F;
+          u.Y *= u.F;
+
+          for (let k = 1; k < v; k++) {
+            let T = f[k - 1], N = f[k];
+            N.x -= (N.x - T.x) * .7;
+            N.y -= (N.y - T.y) * .7;
+            render(N);
+          }
+        }
+
+        requestAnimationFrame(loop);
+      }
+
+      loop();
+    }
+
+    // Fondo de estrellas animadas
+    const canvasEstrellas = document.getElementById("estrellas");
+    const ctxEst = canvasEstrellas.getContext("2d");
+    let estrellas = [];
+
+    canvasEstrellas.width = window.innerWidth;
+    canvasEstrellas.height = window.innerHeight;
+
+    for (let i = 0; i < 100; i++) {
+      estrellas.push({
+        x: Math.random() * canvasEstrellas.width,
+        y: Math.random() * canvasEstrellas.height,
+        r: Math.random() * 1.5 + 0.5,
+        alpha: Math.random(),
+        delta: Math.random() * 0.02 + 0.005
+      });
+    }
+
+    function animarEstrellas() {
+      ctxEst.clearRect(0, 0, canvasEstrellas.width, canvasEstrellas.height);
+      for (let estrella of estrellas) {
+        estrella.alpha += estrella.delta;
+        if (estrella.alpha <= 0 || estrella.alpha >= 1) estrella.delta *= -1;
+        ctxEst.beginPath();
+        ctxEst.arc(estrella.x, estrella.y, estrella.r, 0, Math.PI * 2);
+        ctxEst.fillStyle = `rgba(255, 255, 255, ${estrella.alpha})`;
+        ctxEst.fill();
+      }
+      requestAnimationFrame(animarEstrellas);
+    }
+
+    animarEstrellas();
+
+    // Subtítulos sincronizados
+    const audio = document.getElementById("musica");
+    const lyrics = document.getElementById("lyrics");
+
+   const lyricsData = [
+  // Intro
+  { text: "Yo ya lo sé, que por mí tú ya no sientes", time: 1 },
+  { text: "Entiéndeme, yo no quiero perderte", time: 4 },
+
+  // Verso 1
+  { text: "Tal vez te pueda recuperar, antes de que sea tarde, no", time: 9 },
+  { text: "Me dijiste que nada iba a cambiar, ", time: 17 },
+  { text: "antes de cambiarme a mí", time: 21 },
+  { text: "Dime qué hice mal, si lo nuestro era otra cosa, no", time: 25 },
+  { text: "Dime si todo va mal, ¿cómo revivo una rosa?", time: 33 },
+
+  // Coro
+  { text: "Porque no hay otra como tú, nadie besa como tú", time: 38 },
+  { text: "Nadie lo hace como tú, ya no hay nadie igual", time: 42 },
+  { text: "Porque no hay otra como tú, nadie lo hace como tú", time: 46 },
+  { text: "Nadie besa como tú, nadie lo hace igual", time: 50 },
+  { text: "Ay, que me prenda como tú, ma, no hay nadie má'", time: 54 },
+  { text: "Nadie baila como tú, nadie lo hace igual", time: 58 },
+  { text: "No hay quien se mueva como tú, no me piensan como tú", time: 62 },
+  // { text: "No hay quien se mueva como tú", time: 41 },
+  // { text: "No me piensan como tú", time: 42},
+  { text: "Nadie vale más que tú, nadie vale más", time: 66 },
+
+  // Verso 2
+  { text: "Nena, no me quiero ilusionar, al menos que tú también lo quieras", time: 72 },
+  { text: "Y aunque no soy bueno para hablar, sé que voy a lograr que algún día tú me quieras", time: 76 },
+  { text: "En el pasado te hicieron mal, pero ya buscaré la manera", time: 80 },
+  { text: "De que pierdas el miedo a encontrar algo que va a durarte pa' la vida entera", time: 84 },
+
+  // Pre-coro
+  { text: "Ma, yo no sé si tú a mí también me piensas", time: 89 },
+  { text: "Sigue llamando el destino, porfa, contesta", time: 93 },
+  { text: "Dices que no, pero para mí tú eres perfecta", time: 96 },
+  { text: "No te quiero en otra vida, te quiero en esta", time: 100 },
+
+  // Repetición del coro
+  { text: "Porque no hay otra como tú, nadie besa como tú", time: 103 },
+  { text: "Nadie lo hace como tú, ya no hay nadie igual", time: 106},
+  { text: "Porque no hay otra como tú, nadie lo hace como tú", time: 110 },
+  { text: "Nadie besa como tú, nadie lo hace igual", time: 114 },
+  { text: "Ay, que me prenda como tú, ma, no hay nadie má'", time: 118 },
+  { text: "Nadie baila como tú, nadie lo hace igual", time: 122 },
+  { text: "No hay quien se mueva como tú, no me piensan como tú", time: 126 },
+  { text: "Nadie vale más que tú, nadie vale más", time: 130 },
+
+  {text:"jejej espero que te haya gustado Mucho este detalle...❤️", time: 136},
+  {text: "Te amo Preciosa👻❤️", time: 138}
+];
+
+
+    // Mostrar letra sincronizada con flotado suave
+function updateLyrics() {
+  const time = audio.currentTime;
+  const fadeInDuration = 0; // Duración de aparición suave (en segundos)
+  const displayDuration = 4;  // Cuánto dura visible cada línea (en segundos)
+
+  // Buscar la línea activa actual
+  const currentLine = lyricsData.find(
+    (line) => time >= line.time && time < line.time + displayDuration
+  );
+
+  if (currentLine) {
+    //const progress = Math.min(1, (time - currentLine.time) / fadeInDuration);
+    lyrics.style.opacity = 1;
+  ///  lyrics.style.opacity = progress.toFixed(2); // Opacidad progresiva
+    lyrics.innerHTML = currentLine.text;
+  } else {
+    // Si no hay línea actual, oculta
+    lyrics.style.opacity = 0;
+    lyrics.innerHTML = "";
+  }
+}
+
+    setInterval(updateLyrics, 700);
+
+
+
+    
+  </script>
+</body>
+</html>
